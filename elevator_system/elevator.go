@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"slices"
 	"sync"
 )
 
@@ -24,6 +25,16 @@ func NewElevator(id int) *Elevator {
 }
 
 func (e *Elevator) AddDestination(destinationFloor int) {
+	if e.CurrentFloor == destinationFloor {
+		fmt.Printf("Elevator %d is already at floor %d\n", e.ID, destinationFloor)
+		return
+	}
+
+	if slices.Contains(e.Destinations, destinationFloor) {
+		fmt.Printf("Elevator %d already has destination floor %d\n", e.ID, destinationFloor)
+		return
+	}
+
 	e.Lock()
 	defer e.Unlock()
 	e.ElevatorPanel.AddDestinationFloor(destinationFloor)
