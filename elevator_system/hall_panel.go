@@ -2,17 +2,17 @@ package main
 
 import "fmt"
 
-type Directions string
+type Direction string
 
 const (
-	Up    Directions = "Up"
-	Down  Directions = "Down"
-	Still Directions = "Still"
+	Up    Direction = "Up"
+	Down  Direction = "Down"
+	Still Direction = "Still"
 )
 
 type HallPanel struct {
 	PanelID              int
-	DirectionInstruction Directions
+	DirectionInstruction Direction
 	SourceFloor          int
 }
 
@@ -20,11 +20,11 @@ func NewHallPanel(panelID int, sourceFloor int) *HallPanel {
 	return &HallPanel{PanelID: panelID, SourceFloor: sourceFloor, DirectionInstruction: Still}
 }
 
-func (h *HallPanel) SetDirectionInstructions(directionInstruction Directions) {
+func (h *HallPanel) SetDirectionInstructions(directionInstruction Direction) {
 	h.DirectionInstruction = directionInstruction
 }
 
-func (h *HallPanel) RequestElevator(manager *ElevatorManager, direction Directions) (elevator *Elevator) {
+func (h *HallPanel) RequestElevator(manager *ElevatorManager, direction Direction) (elevator *Elevator) {
 	fmt.Printf("Panel %d requesting elevator with direction %s from floor %d\n", h.PanelID, direction, h.SourceFloor)
 	return manager.AssignElevator(h.SourceFloor, direction)
 }

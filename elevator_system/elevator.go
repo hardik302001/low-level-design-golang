@@ -7,29 +7,33 @@ import (
 
 type Elevator struct {
 	ID               int
-	Capacity         int
 	CurrentFloor     int
-	CurrentDirection Directions
-	CurrentLoad      int
+	CurrentDirection Direction
 	ElevatorPanel    *ElevatorPanel
 	Destinations     []int
-	sync.Mutex
+	sync.Mutex       // helps for locks over go routines
 }
 
 func NewElevator(id int) *Elevator {
-	return &Elevator{ID: id, Capacity: 10, CurrentFloor: 1, CurrentDirection: Still, CurrentLoad: 0, ElevatorPanel: NewElevatorPanel(id)}
+	return &Elevator{
+		ID:               id,
+		CurrentFloor:     1,
+		CurrentDirection: Still,
+		ElevatorPanel:    NewElevatorPanel(id),
+	}
 }
 
 func (e *Elevator) AddDestination(destinationFloor int) {
 	e.Lock()
+	defer e.Unlock()
 	e.ElevatorPanel.AddDestinationFloor(destinationFloor)
 	e.Destinations = append(e.Destinations, destinationFloor)
 	fmt.Printf("Elevator %d received destination floor %d\n", e.ID, destinationFloor)
-	e.Unlock()
 }
 
 func (e *Elevator) RemoveDestination(destinationFloor int) {
 	e.Lock()
+	defer e.Unlock()
 	for i, floor := range e.Destinations {
 		if floor == destinationFloor {
 			e.Destinations = append(e.Destinations[:i], e.Destinations[i+1:]...)
@@ -37,25 +41,21 @@ func (e *Elevator) RemoveDestination(destinationFloor int) {
 			break
 		}
 	}
-	e.Unlock()
+	fmt.Printf("Elevator %d removed destination floor %d\n", e.ID, destinationFloor)
 }
 
 func (e *Elevator) UpdateCurrentFloor(newFloor int) {
 	e.Lock()
+	defer e.Unlock()
+	fmt.Printf("Elevator %d moving from floor %d to floor %d\n", e.ID, e.CurrentFloor, newFloor)
 	e.CurrentFloor = newFloor
-	e.Unlock()
 }
 
-func (e *Elevator) UpdateCurrentLoad(newLoad int) {
+func (e *Elevator) UpdateCurrentDirection(newDirection Direction) {
 	e.Lock()
-	e.CurrentLoad = newLoad
-	e.Unlock()
-}
-
-func (e *Elevator) UpdateCurrentDirection(newDirection Directions) {
-	e.Lock()
+	defer e.Unlock()
+	fmt.Printf("Elevator %d changing direction from %s to %s\n", e.ID, e.CurrentDirection, newDirection)
 	e.CurrentDirection = newDirection
-	e.Unlock()
 }
 
 func (e *Elevator) FarthestDestination() int {
@@ -80,4 +80,17 @@ func (e *Elevator) NearestDestination() int {
 	}
 
 	return minFloor
+}
+
+func (e *Elevator) PrintState() {
+	e.Lock()
+	defer e.Unlock()
+
+	fmt.Printf(
+		"Elevator %d | Current Floor: %d | Direction: %s | Destinations: %v\n",
+		e.ID,
+		e.CurrentFloor,
+		e.CurrentDirection,
+		e.Destinations,
+	)
 }

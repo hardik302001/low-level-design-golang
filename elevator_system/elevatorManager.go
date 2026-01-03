@@ -15,21 +15,20 @@ func NewElevatorManager(building *Building) *ElevatorManager {
 
 func (em *ElevatorManager) OperateAllElevators() {
 	for _, elevator := range em.Building.Elevators {
-		go em.OperateElevator(elevator)
+		elevator.PrintState()
+		go em.OperateElevator(elevator) // go thread for each elevator
 	}
 }
 
 func (em *ElevatorManager) OperateElevator(elevator *Elevator) {
-	for {
-		elevator.Lock()
+	for { // infinte loop to keep elevator operating(real world scenario -> event can come any time)
+	
 		if len(elevator.Destinations) == 0 {
 			elevator.CurrentDirection = Still
-			elevator.Unlock()
 			continue
 		}
 
 		sort.Ints(elevator.Destinations)
-		fmt.Printf("Elevator %d is starting from %d and going to %s\n", elevator.ID, elevator.CurrentFloor, elevator.CurrentDirection)
 
 		if elevator.CurrentDirection == Up {
 			em.MoveElevatorUp(elevator)
@@ -38,16 +37,17 @@ func (em *ElevatorManager) OperateElevator(elevator *Elevator) {
 		} else {
 			em.DecideDirection(elevator)
 		}
-		elevator.Unlock()
+
 	}
 }
 
+// move to nearest request
 func (em *ElevatorManager) DecideDirection(elevator *Elevator) {
-	currentFloor := elevator.CurrentFloor
 	if len(elevator.Destinations) == 0 {
 		return
 	}
 
+	currentFloor := elevator.CurrentFloor
 	nearestDestination := elevator.Destinations[0]
 	if nearestDestination > currentFloor {
 		elevator.UpdateCurrentDirection(Up)
@@ -62,10 +62,11 @@ func (em *ElevatorManager) MoveElevatorUp(elevator *Elevator) {
 	for i := 0; i < len(elevator.Destinations); i++ {
 		destination := elevator.Destinations[i]
 		if destination >= elevator.CurrentFloor {
-			fmt.Printf("Elevator %d moving up to floor %d\n", elevator.ID, destination)
 			elevator.UpdateCurrentFloor(destination)
 			elevator.RemoveDestination(destination)
-			i--
+			i-- // because we have removed an element from the slice
+		} else {
+			// skip destinations below current floor
 		}
 	}
 
@@ -80,9 +81,10 @@ func (em *ElevatorManager) MoveElevatorDown(elevator *Elevator) {
 	for i := len(elevator.Destinations) - 1; i >= 0; i-- {
 		destination := elevator.Destinations[i]
 		if destination <= elevator.CurrentFloor {
-			fmt.Printf("Elevator %d moving down to floor %d\n", elevator.ID, destination)
 			elevator.UpdateCurrentFloor(destination)
 			elevator.RemoveDestination(destination)
+		} else {
+			// skip destinations above current floor
 		}
 	}
 
@@ -93,7 +95,8 @@ func (em *ElevatorManager) MoveElevatorDown(elevator *Elevator) {
 	}
 }
 
-func (em *ElevatorManager) AssignElevator(floor int, direction Directions) (bestElevator *Elevator) {
+// manager will assign the best elevator for the hall call request
+func (em *ElevatorManager) AssignElevator(floor int, direction Direction) (bestElevator *Elevator) {
 	bestElevator = em.FindClosestElevator(floor, direction)
 	if bestElevator != nil {
 		bestElevator.AddDestination(floor)
@@ -102,41 +105,66 @@ func (em *ElevatorManager) AssignElevator(floor int, direction Directions) (best
 	return bestElevator
 }
 
-func (em *ElevatorManager) FindClosestElevator(floor int, direction Directions) *Elevator {
+// mamnager will find best elevator for the hall call request
+func (em *ElevatorManager) FindClosestElevator(floor int, direction Direction) *Elevator {
 	var closestElevator *Elevator
 	minDistance := int(1e9)
 
 	for _, elevator := range em.Building.Elevators {
 		elevator.Lock()
 		distance := em.calculateDistance(elevator, floor, direction)
+		elevator.Unlock()
 
 		if distance < minDistance {
 			minDistance = distance
 			closestElevator = elevator
 		}
-
-		elevator.Unlock()
 	}
+
 	return closestElevator
 }
 
-func (em *ElevatorManager) calculateDistance(elevator *Elevator, floor int, direction Directions) int {
+func (em *ElevatorManager) calculateDistance(elevator *Elevator, floor int, direction Direction) int {
 	currentFloor := elevator.CurrentFloor
 	currentDirection := elevator.CurrentDirection
 
-	if currentDirection == Still || (currentDirection == direction && ((direction == Up && floor > currentFloor) || (direction == Down && floor < currentFloor))) {
+	fmt.Println("Calculating distance for Elevator", elevator.ID, "at floor", currentFloor, "going", currentDirection, "to floor", floor, "going", direction)
+
+	// Case 1: Elevator is idle
+	if currentDirection == Still || len(elevator.Destinations) == 0 {
 		return abs(floor - currentFloor)
 	}
 
-	if (currentDirection == Up && direction == Down) || (currentDirection == Down && direction == Up) {
-		if currentDirection == Up {
-			return abs(elevator.FarthestDestination()-currentFloor) + abs(elevator.FarthestDestination()-floor)
+	// Case 2: Elevator moving in same direction
+	if currentDirection == direction {
+		if (direction == Up && floor >= currentFloor) || (direction == Down && floor <= currentFloor) {
+			// Request is ahead in same direction → pick up immediately
+			return abs(floor - currentFloor)
 		} else {
-			return abs(elevator.NearestDestination()-currentFloor) + abs(elevator.NearestDestination()-floor)
+			// Request is behind → calculate distance after finishing current sweep
+			if direction == Up {
+				farthest := elevator.FarthestDestination()
+				return abs(farthest - currentFloor) + abs(farthest - floor)
+			} else { // Down
+				nearest := elevator.NearestDestination()
+				return abs(currentFloor - nearest) + abs(floor - nearest)
+			}
 		}
 	}
 
-	return 100
+	// Case 3: Elevator moving in opposite direction
+	if (currentDirection == Up && direction == Down) || (currentDirection == Down && direction == Up) {
+		if currentDirection == Up {
+			farthest := elevator.FarthestDestination()
+			return abs(farthest - currentFloor) + abs(farthest - floor)
+		} else { // Down
+			nearest := elevator.NearestDestination()
+			return abs(currentFloor - nearest) + abs(floor - nearest)
+		}
+	}
+
+	// Fallback: very far / unlikely elevator
+	return 1000
 }
 
 func abs(x int) int {

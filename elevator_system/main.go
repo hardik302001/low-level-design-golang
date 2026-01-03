@@ -11,15 +11,15 @@ func main() {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		elevator := building.Floors[1].HallPanels[1].RequestElevator(manager, Up)
-		elevator.AddDestination(6)
+		elevator := building.Floors[1].HallPanels[1].RequestElevator(manager, Up) // request elevator from floor 1 to go Up -> hall call
+		elevator.AddDestination(6)                                                // destination floor 6
 	}()
 
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		elevator := building.Floors[8].HallPanels[2].RequestElevator(manager, Down)
-		elevator.AddDestination(7)
+		secondElevator := building.Floors[8].HallPanels[2].RequestElevator(manager, Down)
+		secondElevator.AddDestination(7)
 	}()
 
 	wg.Add(1)
@@ -29,9 +29,9 @@ func main() {
 		thirdElevator.AddDestination(12)
 	}()
 
-	wg.Wait()
+	wg.Wait() // wait unitl all requests are done
 
-	go manager.OperateAllElevators()
+	go manager.OperateAllElevators() // start operating/simulating all elevators
 
-	select {}
+	select {} // it is needed for blocking main for exiting as we have spawned goroutines
 }
