@@ -22,7 +22,7 @@ func (em *ElevatorManager) OperateAllElevators() {
 
 func (em *ElevatorManager) OperateElevator(elevator *Elevator) {
 	for { // infinte loop to keep elevator operating(real world scenario -> event can come any time)
-	
+
 		if len(elevator.Destinations) == 0 {
 			elevator.CurrentDirection = Still
 			continue
@@ -47,8 +47,8 @@ func (em *ElevatorManager) DecideDirection(elevator *Elevator) {
 		return
 	}
 
-	currentFloor := elevator.CurrentFloor
-	nearestDestination := elevator.Destinations[0]
+	currentFloor := elevator.CurrentFloor                                                    // current floor of elevator
+	nearestDestination := em.getNearestDestinationFloor(currentFloor, elevator.Destinations) // nearest request destination floor from current floor
 	if nearestDestination > currentFloor {
 		elevator.UpdateCurrentDirection(Up)
 		em.MoveElevatorUp(elevator)
@@ -143,11 +143,11 @@ func (em *ElevatorManager) calculateDistance(elevator *Elevator, floor int, dire
 		} else {
 			// Request is behind → calculate distance after finishing current sweep
 			if direction == Up {
-				farthest := elevator.FarthestDestination()
-				return abs(farthest - currentFloor) + abs(farthest - floor)
+				farthest := elevator.HighestDestinationFloor()
+				return abs(farthest-currentFloor) + abs(farthest-floor)
 			} else { // Down
-				nearest := elevator.NearestDestination()
-				return abs(currentFloor - nearest) + abs(floor - nearest)
+				nearest := elevator.LowestDestinationFloor()
+				return abs(currentFloor-nearest) + abs(floor-nearest)
 			}
 		}
 	}
@@ -155,11 +155,11 @@ func (em *ElevatorManager) calculateDistance(elevator *Elevator, floor int, dire
 	// Case 3: Elevator moving in opposite direction
 	if (currentDirection == Up && direction == Down) || (currentDirection == Down && direction == Up) {
 		if currentDirection == Up {
-			farthest := elevator.FarthestDestination()
-			return abs(farthest - currentFloor) + abs(farthest - floor)
+			farthest := elevator.HighestDestinationFloor()
+			return abs(farthest-currentFloor) + abs(farthest-floor)
 		} else { // Down
-			nearest := elevator.NearestDestination()
-			return abs(currentFloor - nearest) + abs(floor - nearest)
+			nearest := elevator.LowestDestinationFloor()
+			return abs(currentFloor-nearest) + abs(floor-nearest)
 		}
 	}
 
@@ -172,4 +172,23 @@ func abs(x int) int {
 		return -x
 	}
 	return x
+}
+
+func (em *ElevatorManager) getNearestDestinationFloor(currentFloor int, destinations []int) int {
+	if len(destinations) == 0 {
+		return 0
+	}
+
+	nearest := destinations[0]
+	minDistance := abs(currentFloor - nearest)
+
+	for _, dest := range destinations {
+		distance := abs(currentFloor - dest)
+		if distance < minDistance {
+			minDistance = distance
+			nearest = dest
+		}
+	}
+
+	return nearest
 }

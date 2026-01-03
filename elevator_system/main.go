@@ -29,9 +29,9 @@ func main() {
 		thirdElevator.AddDestination(12)
 	}()
 
-	wg.Wait() // wait unitl all requests are done
+	wg.Wait() // wait until all requests are done
 
 	go manager.OperateAllElevators() // start operating/simulating all elevators
 
-	select {} // it is needed for blocking main for exiting as we have spawned goroutines
+	select {} // it is needed for blocking main from exiting as we have spawned goroutines
 }
