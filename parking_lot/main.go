@@ -31,18 +31,26 @@ func main() {
 
 	parkingLot.DisplayAvailability()
 
-	ticket, _ := parkingLot.ParkVehicle(vehicles.NewTruck("truck-1"))
-
-	time.Sleep(10 * time.Second)
-	err := parkingLot.UnparkVehicle(ticket)
+	truck := vehicles.NewTruck("truck-1")
+	ticket, err := parkingLot.ParkVehicle(truck)
 	if err != nil {
+		fmt.Printf("Failed to park %s: %v\n", truck.LicenceNumber, err)
 		return
 	}
 
-	formattedCharge := fmt.Sprintf("%.2f", ticket.CalculateTotalCharge())
+	time.Sleep(3 * time.Second)
+	err = parkingLot.UnparkVehicle(ticket, truck)
+	if err != nil {
+		fmt.Printf("Failed to unpark %s: %v\n", truck.LicenceNumber, err)
+		return
+	}
 
-	fmt.Printf("bill for %s = %s\n", ticket.Vehicle.GetLicenceNumber(), formattedCharge)
-
+	// duplicate ticket unpark attempt
+	err = parkingLot.UnparkVehicle(ticket, truck)
+	if err != nil {
+		fmt.Printf("Failed to unpark %s: %v\n", truck.LicenceNumber, err)
+		return
+	}
 }
 
 func parkCar(ind int, parkingLot *ParkingLot) {
@@ -50,11 +58,9 @@ func parkCar(ind int, parkingLot *ParkingLot) {
 
 	car := vehicles.NewCar(fmt.Sprintf("car-%d", ind))
 
-	ticket, err := parkingLot.ParkVehicle(car)
+	_, err := parkingLot.ParkVehicle(car)
 	if err != nil {
 		fmt.Printf("Failed to park %s: %v\n", car.LicenceNumber, err)
 		return
 	}
-
-	fmt.Printf("%s parked successfully. Ticket: %s\n", car.LicenceNumber, ticket.EntryTime)
 }

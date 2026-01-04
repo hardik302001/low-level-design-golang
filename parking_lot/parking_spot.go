@@ -17,25 +17,25 @@ func NewParkingSpot(spotID int, vehicleType vehicles.VehicleType) *ParkingSpot {
 	return &ParkingSpot{SpotID: spotID, VehicleType: vehicleType}
 }
 
-func (p *ParkingSpot) IsParkingSpotFree() bool {
-	return p.CurrentVehicle == nil
+func (ps *ParkingSpot) IsParkingSpotFree() bool {
+	return ps.CurrentVehicle == nil
 }
 
-func (p *ParkingSpot) ParkVehicle(vehicle vehicles.VehicleInterface) error {
-	p.lock.Lock()
-	defer p.lock.Unlock()
+func (ps *ParkingSpot) ParkVehicle(vehicle vehicles.VehicleInterface) error {
+	ps.lock.Lock()
+	defer ps.lock.Unlock()
 
-	if vehicle.GetVehicleType() != p.VehicleType {
-		return fmt.Errorf("vehicle type mismatch: expected %s, got %s", p.VehicleType, vehicle.GetVehicleType())
+	if vehicle.GetVehicleType() != ps.VehicleType {
+		return fmt.Errorf("vehicle type mismatch: expected %s, got %s", ps.VehicleType, vehicle.GetVehicleType())
 	}
-	if p.CurrentVehicle != nil {
+	if ps.CurrentVehicle != nil {
 		return fmt.Errorf("parking spot already occupied")
 	}
 
-	p.CurrentVehicle = &vehicle
+	ps.CurrentVehicle = &vehicle
 	return nil
 }
 
-func (p *ParkingSpot) RemoveVehicle() {
-	p.CurrentVehicle = nil
+func (ps *ParkingSpot) RemoveVehicle() {
+	ps.CurrentVehicle = nil
 }

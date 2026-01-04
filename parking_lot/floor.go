@@ -36,8 +36,8 @@ func createParkingSpots(count int, vehicleType vehicles.VehicleType) map[int]*Pa
 	return spots
 }
 
-func (p *ParkingFloor) FindParkingSpot(vehicleType vehicles.VehicleType) *ParkingSpot {
-	for _, spot := range p.ParkingSpots[vehicleType] {
+func (pf *ParkingFloor) FindParkingSpot(vehicleType vehicles.VehicleType) *ParkingSpot {
+	for _, spot := range pf.ParkingSpots[vehicleType] {
 		if spot.IsParkingSpotFree() {
 			return spot
 		}
@@ -45,11 +45,11 @@ func (p *ParkingFloor) FindParkingSpot(vehicleType vehicles.VehicleType) *Parkin
 	return nil
 }
 
-func (p *ParkingFloor) DisplayFloorStatus(parkingFloor *ParkingFloor) {
-	fmt.Printf("Floor ID: %d\n", parkingFloor.FloorID)
+func (pf *ParkingFloor) DisplayFloorStatus() {
+	fmt.Printf("Floor ID: %d\n", pf.FloorID)
 
-	for vehicleType, spotMap := range parkingFloor.ParkingSpots {
-		fmt.Printf("\n%s Spots:\n", vehicleType)
+	for vehicleType, spotMap := range pf.ParkingSpots {
+		fmt.Printf("%s Spots:\n", vehicleType)
 		count := 0
 
 		for _, spot := range spotMap {
@@ -58,6 +58,6 @@ func (p *ParkingFloor) DisplayFloorStatus(parkingFloor *ParkingFloor) {
 			}
 		}
 
-		fmt.Printf("\n%s Spot: %d Free\n", vehicleType, count)
+		fmt.Printf("%s Spot: %d Free\n", vehicleType, count)
 	}
 }
