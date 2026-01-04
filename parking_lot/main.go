@@ -39,16 +39,16 @@ func main() {
 	}
 
 	time.Sleep(3 * time.Second)
-	err = parkingLot.UnparkVehicle(ticket, truck)
+	err = parkingLot.UnparkVehicle(ticket.TicketId)
 	if err != nil {
-		fmt.Printf("Failed to unpark %s: %v\n", truck.LicenceNumber, err)
+		fmt.Printf("Failed to unpark for ticketId %s: %v\n", ticket.TicketId, err)
 		return
 	}
 
 	// duplicate ticket unpark attempt
-	err = parkingLot.UnparkVehicle(ticket, truck)
+	err = parkingLot.UnparkVehicle(ticket.TicketId)
 	if err != nil {
-		fmt.Printf("Failed to unpark %s: %v\n", truck.LicenceNumber, err)
+		fmt.Printf("Failed to unpark for ticketId %s: %v\n", ticket.TicketId, err)
 		return
 	}
 }

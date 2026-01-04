@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"lld_go_parking_lot/vehicles"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 const baseCharge = 100.00
@@ -36,7 +38,7 @@ func NewParkingTicket(vehicle vehicles.VehicleInterface, spot *ParkingSpot) *Par
 }
 
 func generateTicketID() string {
-	return "TICKET-" + fmt.Sprintf("%d", time.Now().Unix())
+	return "TICKET-" + uuid.New().String()
 }
 
 func (p *ParkingTicket) SetExitTime(exitTime time.Time) {

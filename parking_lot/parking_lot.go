@@ -71,13 +71,14 @@ func (pl *ParkingLot) ParkVehicle(vehicle vehicles.VehicleInterface) (*ParkingTi
 	return parkingTicket, nil
 }
 
-func (p *ParkingLot) UnparkVehicle(parkingTicket *ParkingTicket, vehicle vehicles.VehicleInterface) error {
+func (p *ParkingLot) UnparkVehicle(parkingTicketID string) error {
+	if len(parkingTicketID) == 0 {
+		return fmt.Errorf("invalid parking ticket id")
+	}
+	
+	parkingTicket := p.tickets[parkingTicketID]
 	if parkingTicket == nil {
 		return fmt.Errorf("invalid parking ticket")
-	}
-
-	if vehicle.GetLicenceNumber() != parkingTicket.Vehicle.GetLicenceNumber() {
-		return fmt.Errorf("vehicle licence number does not match the ticket")
 	}
 
 	if parkingTicket.Status == Closed {
