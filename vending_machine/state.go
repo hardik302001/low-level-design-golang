@@ -5,7 +5,7 @@ import "fmt"
 type State interface {
 	InsertMoney(amount float64)
 	SelectProduct(product *Product)
-	ReturnChange()
+	ReturnInsertedMoney()
 	DispenseProduct()
 }
 
@@ -23,13 +23,13 @@ func (s *MoneyInsertedState) SelectProduct(product *Product) {
 	fmt.Println("Insert money to proceed")
 }
 
-func (s *MoneyInsertedState) ReturnChange() {
+func (s *MoneyInsertedState) ReturnInsertedMoney() {
 	if s.vendingMachine.insertedMoney > 0 {
 		change := s.vendingMachine.insertedMoney
 		s.vendingMachine.insertedMoney = 0
-		fmt.Printf("Returning change: $%.2f\n", change)
+		fmt.Printf("Returning inserted money: $%.2f\n", change)
 	} else {
-		fmt.Println("No change to return.")
+		fmt.Println("No money to return.")
 	}
 }
 
@@ -62,8 +62,8 @@ func (s *ProductSelectedState) SelectProduct(product *Product) {
 	}
 }
 
-func (s *ProductSelectedState) ReturnChange() {
-	s.vendingMachine.moneyInsertedState.ReturnChange()
+func (s *ProductSelectedState) ReturnInsertedMoney() {
+	s.vendingMachine.moneyInsertedState.ReturnInsertedMoney()
 }
 
 func (s *ProductSelectedState) DispenseProduct() {
@@ -79,11 +79,11 @@ func (s *ProductDispensedState) InsertMoney(amount float64) {
 }
 
 func (s *ProductDispensedState) SelectProduct(product *Product) {
-	fmt.Println("Product already dispensed.")
+	fmt.Println("Product already selected.")
 }
 
-func (s *ProductDispensedState) ReturnChange() {
-	s.vendingMachine.moneyInsertedState.ReturnChange()
+func (s *ProductDispensedState) ReturnInsertedMoney() {
+	s.vendingMachine.moneyInsertedState.ReturnInsertedMoney()
 }
 
 func (s *ProductDispensedState) DispenseProduct() {

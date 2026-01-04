@@ -29,12 +29,10 @@ func (s *ATMAbstract) DispenserAmount() error {
 
 func (s *ATMAbstract) SelectAccount() error {
 	return nil
-
 }
 
 func (s *ATMAbstract) GetCardDetail() error {
 	return nil
-
 }
 
 func (s *ATMAbstract) StateName() string {
